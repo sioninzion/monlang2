@@ -31,9 +31,10 @@
       overflow: hidden;
       color: var(--ink);
       background:
-        linear-gradient(120deg, rgba(255, 224, 138, 0.46) 0 18%, transparent 18% 100%),
-        linear-gradient(235deg, rgba(186, 247, 222, 0.5) 0 20%, transparent 20% 100%),
-        linear-gradient(160deg, #fff9f2 0%, #fff3f8 45%, #eaf9ff 100%);
+        radial-gradient(circle at 18% 18%, rgba(255, 242, 166, 0.72), transparent 26%),
+        radial-gradient(circle at 82% 22%, rgba(255, 193, 217, 0.58), transparent 24%),
+        radial-gradient(circle at 70% 82%, rgba(174, 234, 255, 0.64), transparent 30%),
+        linear-gradient(145deg, #fff9f2 0%, #fff2fa 44%, #ecfbff 100%);
     }
 
     body::before {
@@ -298,10 +299,32 @@
       min-height: 58px;
       padding: 0 30px;
       border-radius: 8px;
-      background: linear-gradient(135deg, #4f8cff, #7c5cff);
-      color: #fff;
+      background: linear-gradient(145deg, rgba(255,255,255,0.96), #f2fffb 48%, #dff6ff);
+      color: transparent;
+      background-clip: padding-box;
+      -webkit-text-fill-color: transparent;
       font-size: clamp(18px, 2vw, 25px);
       font-weight: 900;
+      border: 3px solid rgba(255, 255, 255, 0.9);
+      box-shadow: 0 11px 0 rgba(67, 86, 152, 0.11), 0 18px 34px rgba(79, 140, 255, 0.16), inset 0 -5px 0 rgba(255, 122, 182, 0.08);
+      transition: transform 0.16s ease, box-shadow 0.16s ease, background 0.16s ease, color 0.16s ease;
+    }
+
+    .primary {
+      background-image:
+        linear-gradient(90deg, #4f8cff, #7c5cff, #ff7ab6),
+        linear-gradient(145deg, rgba(255,255,255,0.96), #f2fffb 48%, #dff6ff);
+      background-clip: text, padding-box;
+      -webkit-background-clip: text, padding-box;
+    }
+
+    .primary:hover {
+      transform: translateY(-2px);
+      background-image: linear-gradient(135deg, #4f8cff, #7c5cff);
+      background-clip: border-box;
+      -webkit-background-clip: border-box;
+      color: #fff;
+      -webkit-text-fill-color: #fff;
       box-shadow: 0 11px 0 rgba(67, 86, 152, 0.18), 0 18px 34px rgba(79, 140, 255, 0.24);
     }
 
@@ -383,6 +406,11 @@
       text-align: center;
     }
 
+    .team-member.team-leader {
+      background: linear-gradient(135deg, #fff9c4, #fff2a6);
+      box-shadow: inset 0 0 0 3px rgba(250, 204, 21, 0.34), 0 10px 22px rgba(250, 204, 21, 0.18);
+    }
+
     .bottom-action {
       position: absolute;
       bottom: 6vh;
@@ -452,6 +480,92 @@
       0% { transform: translate(-50%, -50%) scale(0.72); opacity: 0; }
       12%, 86% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
       100% { transform: translate(-50%, -50%) scale(0.45); opacity: 0; }
+    }
+
+    .turn-band {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 122vw;
+      height: 136px;
+      transform: translate(-50%, -50%) rotate(-4deg);
+      background: linear-gradient(90deg, #4f8cff, #7c5cff, #ff7ab6);
+      background-repeat: no-repeat;
+      background-size: 0% 100%;
+      background-position: left center;
+      color: #fff;
+      display: grid;
+      place-items: center;
+      font-size: clamp(32px, 5.2vw, 67px);
+      font-weight: 900;
+      text-shadow: 0 4px 0 rgba(38, 51, 79, 0.22);
+      box-shadow: 0 18px 44px rgba(79, 140, 255, 0.24);
+      z-index: 28;
+      pointer-events: none;
+      opacity: 0;
+    }
+
+    .turn-band.show {
+      animation: turnBandFill 1.5s ease forwards;
+    }
+
+    .turn-band.team-two {
+      transform: translate(-50%, -50%) rotate(4deg);
+      background-position: right center;
+    }
+
+    @keyframes turnBandFill {
+      0% {
+        opacity: 0;
+        background-size: 0% 100%;
+        transform: translate(-50%, -50%) rotate(-4deg);
+      }
+      12% {
+        opacity: 1;
+        background-size: 100% 100%;
+        transform: translate(-50%, -50%) rotate(-4deg);
+      }
+      85% {
+        opacity: 1;
+        background-size: 100% 100%;
+        background-position: right center;
+        transform: translate(-50%, -50%) rotate(-4deg);
+      }
+      100% {
+        opacity: 0;
+        background-size: 0% 100%;
+        background-position: right center;
+        transform: translate(-50%, -50%) rotate(-4deg);
+      }
+    }
+
+    .turn-band.team-two.show {
+      animation-name: turnBandFillReverse;
+    }
+
+    @keyframes turnBandFillReverse {
+      0% {
+        opacity: 0;
+        background-size: 0% 100%;
+        transform: translate(-50%, -50%) rotate(4deg);
+      }
+      12% {
+        opacity: 1;
+        background-size: 100% 100%;
+        transform: translate(-50%, -50%) rotate(4deg);
+      }
+      85% {
+        opacity: 1;
+        background-size: 100% 100%;
+        background-position: left center;
+        transform: translate(-50%, -50%) rotate(4deg);
+      }
+      100% {
+        opacity: 0;
+        background-size: 0% 100%;
+        background-position: left center;
+        transform: translate(-50%, -50%) rotate(4deg);
+      }
     }
 
     .card-grid {
@@ -955,11 +1069,11 @@
     <section id="start4" class="screen">
       <div id="teamsWrap" class="teams-wrap">
         <article class="team-box">
-          <h2>1팀</h2>
+          <h2 id="team1Title">1팀</h2>
           <div id="team1List" class="team-list"></div>
         </article>
         <article class="team-box">
-          <h2>2팀</h2>
+          <h2 id="team2Title">2팀</h2>
           <div id="team2List" class="team-list"></div>
         </article>
       </div>
@@ -976,6 +1090,7 @@
           <li>카드의 한국어 - 몽골 발음이 일치하면 점수 획득!</li>
           <li>카드의 내용을 잘 기억하고 일치하는 카드를 고르자!</li>
           <li>정답을 맞추면 기회 1번 더 획득! 추가 기회는 최대 2회!</li>
+          <li id="diceRule">주사위가 1,3,5가 나오면 1팀이, 2,4,6이 나오면 2팀이 먼저 선택!</li>
         </ol>
       </div>
       <div id="rulesConfirmWrap" class="bottom-action">
@@ -988,11 +1103,12 @@
         <div id="turnMessage" class="turn-message"></div>
         <div id="cardGrid" class="card-grid"></div>
         <div id="scoreboard" class="scoreboard">
-          <div class="score"><span>1팀</span><span id="score1">0점</span></div>
-          <div class="score"><span>2팀</span><span id="score2">0점</span></div>
+          <div class="score"><span id="scoreTeam1">1팀</span><span id="score1">0점</span></div>
+          <div class="score"><span id="scoreTeam2">2팀</span><span id="score2">0점</span></div>
         </div>
       </div>
       <div id="turnPopup" class="turn-popup"></div>
+      <div id="turnBand" class="turn-band"></div>
       <div id="diceOverlay" class="overlay">
         <div id="diceBox" class="dice-box">
           <div id="dice" class="dice">?</div>
@@ -1045,6 +1161,8 @@
     const state = {
       absent: new Set(),
       teams: [[], []],
+      teamNames: ["1팀", "2팀"],
+      teamLeaders: [null, null],
       cards: [],
       selected: [],
       scores: [0, 0],
@@ -1065,6 +1183,8 @@
     const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
     const birthYear = (year) => Number(year) >= 50 ? 1900 + Number(year) : 2000 + Number(year);
     const compareAge = (a, b) => birthYear(a.year) - birthYear(b.year) || a.name.localeCompare(b.name, "ko");
+    const teamName = (index) => state.teamNames[index] || `${index + 1}팀`;
+    const givenNameTeam = (person, fallback) => person ? `${person.name.slice(1) || person.name}팀` : fallback;
 
     function show(id) {
       document.querySelectorAll(".screen").forEach(screen => screen.classList.remove("active"));
@@ -1129,7 +1249,14 @@
       state.teamPointers = [0, 0];
     }
 
+    function chooseTeamLeaders() {
+      state.teamLeaders = state.teams.map(team => team.length ? team[Math.floor(Math.random() * team.length)] : null);
+      state.teamNames = state.teamLeaders.map((leader, index) => givenNameTeam(leader, `${index + 1}팀`));
+    }
+
     function renderTeams() {
+      $("team1Title").textContent = teamName(0);
+      $("team2Title").textContent = teamName(1);
       ["team1List", "team2List"].forEach((id, teamIndex) => {
         $(id).innerHTML = "";
         state.teams[teamIndex]
@@ -1137,6 +1264,9 @@
           .forEach(person => {
             const div = document.createElement("div");
             div.className = "team-member";
+            if (state.teamLeaders[teamIndex] && state.teamLeaders[teamIndex].id === person.id) {
+              div.classList.add("team-leader");
+            }
             div.textContent = person.label;
             $(id).appendChild(div);
           });
@@ -1157,17 +1287,48 @@
       if (next) next();
     }
 
+    async function runCaptainWipe(next) {
+      show("transition");
+      const screen = $("transition");
+      const wipe = $("wipe");
+      screen.style.background = "#fff";
+      wipe.className = "wipe enter";
+      wipe.textContent = "팀명 정하는 중";
+      await sleep(900);
+      wipe.textContent = "";
+      await sleep(220);
+      wipe.className = "wipe exit";
+      await sleep(220);
+      wipe.className = "wipe";
+      screen.style.background = "";
+      if (next) next();
+    }
+
     async function goTeams() {
       makeTeams();
-      renderTeams();
       await runWipe("팀 생성 중", async () => {
+        state.teamNames = ["1팀", "2팀"];
+        state.teamLeaders = [null, null];
+        renderTeams();
         show("start4");
         $("teamsWrap").className = "teams-wrap";
         $("teamConfirmWrap").classList.remove("show");
         await sleep(30);
         $("teamsWrap").classList.add("down");
-        await sleep(230);
-        $("teamConfirmWrap").classList.add("show");
+        await sleep(1500);
+        $("teamsWrap").className = "teams-wrap up";
+        await sleep(220);
+        chooseTeamLeaders();
+        await runCaptainWipe(async () => {
+          renderTeams();
+          show("start4");
+          $("teamsWrap").className = "teams-wrap";
+          $("teamConfirmWrap").classList.remove("show");
+          await sleep(30);
+          $("teamsWrap").classList.add("down");
+          await sleep(230);
+          $("teamConfirmWrap").classList.add("show");
+        });
       });
     }
 
@@ -1176,12 +1337,17 @@
       $("teamsWrap").className = "teams-wrap up";
       await sleep(220);
       show("start5");
+      updateDiceRule();
       $("rulesPanel").className = "panel rules-panel";
       $("rulesConfirmWrap").classList.remove("show");
       await sleep(30);
       $("rulesPanel").classList.add("down");
       await sleep(1000);
       $("rulesConfirmWrap").classList.add("show");
+    }
+
+    function updateDiceRule() {
+      $("diceRule").textContent = `주사위가 1,3,5가 나오면 ${teamName(0)}이, 2,4,6이 나오면 ${teamName(1)}이 먼저 선택!`;
     }
 
     function shuffle(array) {
@@ -1235,6 +1401,8 @@
     }
 
     function updateScores() {
+      $("scoreTeam1").textContent = teamName(0);
+      $("scoreTeam2").textContent = teamName(1);
       $("score1").textContent = `${state.scores[0]}점`;
       $("score2").textContent = `${state.scores[1]}점`;
     }
@@ -1287,7 +1455,7 @@
       $("dice").className = "dice pop";
       $("dice").textContent = result;
       await sleep(500);
-      await runWipe(`${state.firstTeam + 1}팀 먼저 선택!`, () => {});
+      await runWipe(`${teamName(state.firstTeam)} 먼저 선택!`, () => {});
       show("game");
       await sleep(100);
       $("diceBox").className = "dice-box up";
@@ -1308,15 +1476,16 @@
 
     function setTurnMessage(animated = true) {
       const message = $("turnMessage");
-      const text = `${state.turnTeam + 1}팀의 ${currentPlayer()} 선택해주세요`;
+      const text = `${teamName(state.turnTeam)}의 ${currentPlayer()} 선택해주세요`;
       message.textContent = text;
       if (!animated) return;
-      const popup = $("turnPopup");
-      popup.textContent = text;
-      popup.classList.remove("show");
-      void popup.offsetWidth;
-      popup.classList.add("show");
-      window.setTimeout(() => popup.classList.remove("show"), 820);
+      const band = $("turnBand");
+      band.textContent = text;
+      band.classList.remove("show", "team-one", "team-two");
+      band.classList.add(state.turnTeam === 0 ? "team-one" : "team-two");
+      void band.offsetWidth;
+      band.classList.add("show");
+      window.setTimeout(() => band.classList.remove("show"), 1520);
     }
 
     function advanceTurn() {
@@ -1347,7 +1516,7 @@
       const chosen = state.selected
         .map(number => state.cards.find(card => card.number === number));
       showBigCards(chosen);
-      await sleep(850);
+      await sleep(1200);
       const isMatch = chosen[0].pairId === chosen[1].pairId && chosen[0].type !== chosen[1].type;
       if (isMatch) {
         state.wrongStreak = 0;
@@ -1470,7 +1639,7 @@
       $("turnMessage").textContent = "";
       $("endBanner").classList.add("show");
       await sleep(1600);
-      const winnerText = state.scores[0] === state.scores[1] ? "무승부!" : `${state.scores[0] > state.scores[1] ? 1 : 2}팀 승리!`;
+      const winnerText = state.scores[0] === state.scores[1] ? "무승부!" : `${teamName(state.scores[0] > state.scores[1] ? 0 : 1)} 승리!`;
       $("winner").innerHTML = `
         <div class="winner-content">
           <div class="winner-title">${winnerText}</div>
@@ -1543,6 +1712,8 @@
     function resetAll() {
       state.absent.clear();
       state.teams = [[], []];
+      state.teamNames = ["1팀", "2팀"];
+      state.teamLeaders = [null, null];
       state.cards = [];
       state.selected = [];
       state.scores = [0, 0];
