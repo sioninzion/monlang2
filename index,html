@@ -1,0 +1,1287 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>신나는 복습게임</title>
+  <style>
+    :root {
+      --bg: #fff9f2;
+      --ink: #243247;
+      --line: #6b7280;
+      --soft-line: rgba(75, 85, 99, 0.28);
+      --green: #34d399;
+      --blue: #dff6ff;
+      --pink: #ffe8f3;
+      --gray: #e5e7eb;
+      --card: #ffffff;
+      --accent: #ff8a5b;
+      --team1: #4f8cff;
+      --team2: #ff7ab6;
+      --sun: #ffe08a;
+      --mint: #baf7de;
+      font-family: "Pretendard", "Noto Sans KR", "Malgun Gothic", system-ui, sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      overflow: hidden;
+      color: var(--ink);
+      background:
+        linear-gradient(120deg, rgba(255, 224, 138, 0.46) 0 18%, transparent 18% 100%),
+        linear-gradient(235deg, rgba(186, 247, 222, 0.5) 0 20%, transparent 20% 100%),
+        linear-gradient(160deg, #fff9f2 0%, #fff3f8 45%, #eaf9ff 100%);
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background:
+        repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.26) 0 2px, transparent 2px 28px),
+        repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.18) 0 2px, transparent 2px 32px);
+      mask-image: linear-gradient(to bottom, rgba(0,0,0,0.55), rgba(0,0,0,0.16));
+    }
+
+    button {
+      font: inherit;
+      border: 0;
+      cursor: pointer;
+      color: inherit;
+    }
+
+    .app {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .screen {
+      position: absolute;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: clamp(16px, 2.5vw, 34px);
+    }
+
+    .screen.active { display: flex; }
+
+    .title {
+      position: absolute;
+      top: 16vh;
+      left: 50%;
+      transform: translateX(-50%);
+      width: min(92vw, 1100px);
+      text-align: center;
+      font-size: clamp(38px, 7vw, 86px);
+      font-weight: 900;
+      letter-spacing: 0;
+      color: #26334f;
+      text-shadow: 0 5px 0 rgba(255, 255, 255, 0.95), 0 12px 26px rgba(255, 138, 91, 0.18);
+    }
+
+    .play-button {
+      width: clamp(118px, 15vw, 180px);
+      aspect-ratio: 1;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #ffcf6f, #ff8a5b 50%, #ff7ab6);
+      box-shadow: 0 22px 54px rgba(255, 122, 182, 0.32), inset 0 -8px 0 rgba(186, 74, 103, 0.16);
+      display: grid;
+      place-items: center;
+      transition: transform 0.18s ease;
+    }
+
+    .play-button:hover { transform: scale(1.06); }
+
+    .play-button::before {
+      content: "";
+      margin-left: 10%;
+      width: 0;
+      height: 0;
+      border-top: 32px solid transparent;
+      border-bottom: 32px solid transparent;
+      border-left: 52px solid #fff;
+    }
+
+    .ripple {
+      position: absolute;
+      width: 20px;
+      aspect-ratio: 1;
+      border-radius: 50%;
+      border: 8px solid rgba(249, 115, 22, 0.45);
+      transform: scale(0);
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .ripple.run {
+      animation: ripple 0.55s ease-out forwards;
+    }
+
+    @keyframes ripple {
+      0% { transform: scale(0); opacity: 0.9; }
+      100% { transform: scale(52); opacity: 0; }
+    }
+
+    .panel {
+      width: min(1120px, 94vw);
+      max-height: 86vh;
+      border: 4px solid var(--soft-line);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.86);
+      box-shadow: 0 20px 56px rgba(85, 94, 124, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.94);
+      backdrop-filter: blur(10px);
+      padding: clamp(18px, 2.6vw, 36px);
+    }
+
+    .absence-panel {
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      gap: 18px;
+    }
+
+    .panel-title {
+      margin: 0;
+      text-align: center;
+      font-size: clamp(28px, 4vw, 48px);
+      font-weight: 900;
+      color: #2d3a59;
+    }
+
+    .roster {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 10px;
+      align-content: start;
+    }
+
+    .person {
+      min-height: 54px;
+      border: 3px solid rgba(255, 255, 255, 0.78);
+      border-radius: 8px;
+      box-shadow: 0 7px 0 rgba(94, 104, 132, 0.1);
+      font-size: clamp(16px, 1.8vw, 24px);
+      font-weight: 800;
+      transition: transform 0.14s ease, background 0.14s ease, opacity 0.14s ease;
+    }
+
+    .person.male { background: var(--blue); }
+    .person.female { background: var(--pink); }
+    .person.absent {
+      transform: scale(0.92);
+      background: var(--gray);
+      color: #6b7280;
+      opacity: 0.82;
+    }
+
+    .primary {
+      justify-self: center;
+      min-width: 220px;
+      min-height: 58px;
+      padding: 0 30px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #4f8cff, #7c5cff);
+      color: #fff;
+      font-size: clamp(18px, 2vw, 25px);
+      font-weight: 900;
+      box-shadow: 0 11px 0 rgba(67, 86, 152, 0.18), 0 18px 34px rgba(79, 140, 255, 0.24);
+    }
+
+    .wipe {
+      position: absolute;
+      left: -105vw;
+      top: 50%;
+      width: 100vw;
+      height: 140px;
+      transform: translateY(-50%);
+      background: linear-gradient(90deg, #4f8cff, #7c5cff, #ff7ab6);
+      color: #fff;
+      display: grid;
+      place-items: center;
+      font-size: clamp(30px, 5vw, 64px);
+      font-weight: 900;
+      z-index: 20;
+    }
+
+    .wipe.enter { animation: wipeIn 0.2s ease forwards; }
+    .wipe.exit { animation: wipeOut 0.2s ease forwards; }
+
+    @keyframes wipeIn {
+      from { left: -105vw; }
+      to { left: 0; }
+    }
+
+    @keyframes wipeOut {
+      from { left: 0; }
+      to { left: 105vw; }
+    }
+
+    .teams-wrap {
+      width: min(1120px, 94vw);
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: clamp(16px, 4vw, 44px);
+      transform: translateY(-120vh);
+      transition: transform 0.2s ease;
+    }
+
+    .teams-wrap.down { transform: translateY(0); }
+    .teams-wrap.up { transform: translateY(-120vh); }
+
+    .team-box {
+      min-height: 62vh;
+      border: 4px solid var(--soft-line);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.88);
+      box-shadow: 0 20px 54px rgba(85, 94, 124, 0.16);
+      backdrop-filter: blur(10px);
+      padding: clamp(16px, 2.4vw, 30px);
+      display: grid;
+      grid-template-rows: auto 1fr;
+      gap: 20px;
+    }
+
+    .team-box h2 {
+      margin: 0;
+      text-align: center;
+      font-size: clamp(34px, 5vw, 66px);
+      font-weight: 900;
+    }
+
+    .team-list {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      align-content: start;
+      font-size: clamp(17px, 2vw, 25px);
+      font-weight: 800;
+    }
+
+    .team-member {
+      padding: 12px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #ffffff, #f4fbff);
+      box-shadow: inset 0 0 0 2px rgba(79, 140, 255, 0.08);
+      text-align: center;
+    }
+
+    .bottom-action {
+      position: absolute;
+      bottom: 6vh;
+      left: 50%;
+      transform: translateX(-50%);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.18s ease;
+      z-index: 45;
+    }
+
+    .bottom-action.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .rules-panel {
+      transform: translateY(-120vh);
+      transition: transform 0.2s ease;
+      font-size: clamp(20px, 2.6vw, 34px);
+      line-height: 1.55;
+      font-weight: 800;
+    }
+
+    .rules-panel.down { transform: translateY(0); }
+    .rules-panel ol { margin: 22px 0 0; padding-left: 1.4em; }
+
+    .game-layout {
+      width: min(1240px, 96vw);
+      height: min(92vh, 900px);
+      display: grid;
+      grid-template-rows: 64px 1fr auto;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .turn-message {
+      min-height: 48px;
+      text-align: center;
+      font-size: clamp(22px, 3vw, 38px);
+      font-weight: 900;
+      color: #0f172a;
+    }
+
+    .turn-popup {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      z-index: 28;
+      padding: 14px 32px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.96);
+      box-shadow: 0 18px 46px rgba(15, 23, 42, 0.22);
+      font-size: clamp(28px, 4vw, 54px);
+      font-weight: 900;
+      color: #26334f;
+      opacity: 0;
+      pointer-events: none;
+      transform: translate(-50%, -50%) scale(0.55);
+    }
+
+    .turn-popup.show {
+      animation: turnPopup 0.8s ease forwards;
+    }
+
+    @keyframes turnPopup {
+      0% { transform: translate(-50%, -50%) scale(0.72); opacity: 0; }
+      12%, 86% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+      100% { transform: translate(-50%, -50%) scale(0.45); opacity: 0; }
+    }
+
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(8, minmax(0, 1fr));
+      grid-template-rows: repeat(5, minmax(0, 1fr));
+      gap: clamp(7px, 1vw, 12px);
+      width: 100%;
+      height: 100%;
+      min-height: 0;
+    }
+
+    .memory-card {
+      position: relative;
+      display: grid;
+      place-items: center;
+      border: 3px solid rgba(75, 85, 99, 0.42);
+      border-radius: 8px;
+      background: linear-gradient(145deg, #fff2a6, #ffc1d9 55%, #aeeaff);
+      box-shadow: 0 8px 0 rgba(103, 72, 115, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.82);
+      font-size: clamp(20px, 2.8vw, 38px);
+      font-weight: 900;
+      overflow: hidden;
+      transition: transform 0.15s ease, filter 0.15s ease;
+    }
+
+    .memory-card:hover { transform: translateY(-2px); }
+    .memory-card.locked { cursor: default; }
+
+    .memory-card.selected::after {
+      content: "";
+      position: absolute;
+      inset: 7px;
+      border: 7px solid rgba(37, 99, 235, 0.86);
+      border-radius: 8px;
+      box-shadow: inset 0 0 0 3px rgba(255, 255, 255, 0.72);
+      pointer-events: none;
+    }
+
+    .memory-card.revealed {
+      background: linear-gradient(135deg, #ffffff, #f2fffb);
+      font-size: clamp(13px, 1.25vw, 20px);
+      padding: 8px;
+      text-align: center;
+      word-break: keep-all;
+      line-height: 1.25;
+    }
+
+    .scoreboard {
+      min-height: 64px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    .score {
+      border: 3px solid rgba(75, 85, 99, 0.34);
+      border-radius: 8px;
+      background: rgba(255,255,255,0.82);
+      box-shadow: 0 12px 28px rgba(85, 94, 124, 0.12);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 18px;
+      font-size: clamp(19px, 2vw, 29px);
+      font-weight: 900;
+    }
+
+    .overlay {
+      position: absolute;
+      inset: 0;
+      display: none;
+      place-items: center;
+      z-index: 30;
+    }
+
+    .overlay.show { display: grid; }
+    .blurred { filter: blur(3px); }
+
+    .dice-box {
+      width: min(560px, 86vw);
+      min-height: 360px;
+      border: 4px solid rgba(75, 85, 99, 0.32);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.9);
+      box-shadow: 0 22px 54px rgba(85, 94, 124, 0.18);
+      display: grid;
+      place-items: center;
+      transform: translateY(-120vh);
+      transition: transform 0.2s ease;
+    }
+
+    .dice-box.down { transform: translateY(0); }
+    .dice-box.up { transform: translateY(-120vh); }
+
+    .dice {
+      width: 130px;
+      aspect-ratio: 1;
+      border-radius: 20px;
+      background: linear-gradient(135deg, #ffffff, #fff7d6);
+      border: 4px solid rgba(75, 85, 99, 0.42);
+      display: grid;
+      place-items: center;
+      font-size: 68px;
+      font-weight: 900;
+      box-shadow: 0 16px 0 rgba(103, 72, 115, 0.14);
+    }
+
+    .dice.roll { animation: rattle 0.18s linear infinite; }
+    .dice.pop { animation: pop 0.35s ease; }
+
+    @keyframes rattle {
+      0%, 100% { transform: translate(0, 0) rotate(0); }
+      25% { transform: translate(-8px, 5px) rotate(-10deg); }
+      50% { transform: translate(7px, -6px) rotate(9deg); }
+      75% { transform: translate(5px, 7px) rotate(-6deg); }
+    }
+
+    @keyframes pop {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.35); }
+      100% { transform: scale(1); }
+    }
+
+    .match-view {
+      position: absolute;
+      inset: 0;
+      display: none;
+      place-items: center;
+      z-index: 25;
+      background: rgba(15, 23, 42, 0.24);
+    }
+
+    .match-view.show { display: grid; }
+
+    .big-cards {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(220px, 360px));
+      gap: clamp(22px, 5vw, 70px);
+    }
+
+    .big-card {
+      min-height: 260px;
+      border: 4px solid rgba(75, 85, 99, 0.42);
+      border-radius: 8px;
+      background: linear-gradient(135deg, #ffffff, #f7fbff);
+      box-shadow: 0 24px 58px rgba(85, 94, 124, 0.2);
+      padding: 22px;
+      display: grid;
+      grid-template-rows: auto 1fr;
+      gap: 14px;
+      text-align: center;
+      animation: zoomIn 0.2s ease;
+    }
+
+    .big-card .num {
+      font-size: clamp(34px, 5vw, 68px);
+      font-weight: 900;
+      color: var(--accent);
+    }
+
+    .big-card .word {
+      align-self: center;
+      font-size: clamp(25px, 3.4vw, 46px);
+      font-weight: 900;
+      word-break: keep-all;
+    }
+
+    @keyframes zoomIn {
+      from { transform: scale(0.65); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    .flash {
+      position: absolute;
+      left: 50%;
+      top: 45%;
+      transform: translate(-50%, -150%) scale(1.25);
+      color: #22c55e;
+      font-size: clamp(58px, 10vw, 132px);
+      font-weight: 900;
+      letter-spacing: 0;
+      z-index: 35;
+      opacity: 0;
+      pointer-events: none;
+      -webkit-text-stroke: 7px rgba(255, 255, 255, 0.94);
+      paint-order: stroke fill;
+      filter: drop-shadow(0 7px 0 #111827) drop-shadow(0 -7px 0 #111827) drop-shadow(7px 0 0 #111827) drop-shadow(-7px 0 0 #111827);
+    }
+
+    .flash.right { color: #22c55e; }
+    .flash.wrong { color: #ef4444; }
+    .flash.show { animation: feedbackDrop 0.72s cubic-bezier(.17,.9,.27,1.15) forwards; }
+
+    @keyframes feedbackDrop {
+      0% { transform: translate(-50%, -190%) scale(1.2); opacity: 0; }
+      28% { transform: translate(-50%, -50%) scale(1.08); opacity: 1; }
+      78% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+      100% { transform: translate(-50%, -50%) scale(0.72); opacity: 0; }
+    }
+
+    .burst-particle,
+    .answer-ray {
+      position: absolute;
+      left: 50%;
+      top: 45%;
+      pointer-events: none;
+      z-index: 34;
+    }
+
+    .burst-particle {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #ef4444;
+      box-shadow: 0 0 18px rgba(239, 68, 68, 0.55);
+      animation: redBurst 0.68s ease-out forwards;
+    }
+
+    @keyframes redBurst {
+      0% { transform: translate(-50%, -50%) scale(0.3); opacity: 1; }
+      100% { transform: translate(calc(-50% + var(--x)), calc(-50% + var(--y))) scale(0); opacity: 0; }
+    }
+
+    .answer-ray {
+      width: clamp(120px, 16vw, 220px);
+      height: 12px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, rgba(34, 197, 94, 0), rgba(34, 197, 94, 0.98), rgba(187, 247, 208, 0));
+      transform-origin: left center;
+      animation: greenRay 0.72s ease-out forwards;
+    }
+
+    @keyframes greenRay {
+      0% { transform: rotate(var(--angle)) scaleX(0); opacity: 0; }
+      22% { opacity: 1; }
+      100% { transform: rotate(var(--angle)) scaleX(1.25); opacity: 0; }
+    }
+
+    .end-banner {
+      position: absolute;
+      left: 50%;
+      bottom: -260px;
+      transform: translateX(-50%);
+      min-width: min(820px, 90vw);
+      padding: 22px 36px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #4f8cff, #7c5cff);
+      color: #fff;
+      text-align: center;
+      font-size: clamp(42px, 7vw, 88px);
+      font-weight: 900;
+      z-index: 40;
+    }
+
+    .end-banner.show { animation: endShake 1.4s ease forwards; }
+
+    @keyframes endShake {
+      0% { bottom: -260px; transform: translateX(-50%) rotate(0); }
+      14% { bottom: 38%; transform: translateX(-50%) rotate(-8deg); }
+      28% { bottom: 38%; transform: translateX(-50%) rotate(8deg); }
+      42% { bottom: 38%; transform: translateX(-50%) rotate(-6deg); }
+      70% { bottom: 38%; transform: translateX(-50%) rotate(5deg); }
+      86% { bottom: 38%; transform: translateX(-50%) rotate(0); }
+      100% { bottom: -260px; transform: translateX(-50%) rotate(0); }
+    }
+
+    .winner {
+      position: absolute;
+      inset: 0;
+      display: none;
+      place-items: center;
+      text-align: center;
+      font-size: clamp(48px, 8vw, 106px);
+      font-weight: 900;
+      color: #26334f;
+      z-index: 32;
+      text-shadow: 0 6px 0 #fff;
+    }
+
+    .winner.show { display: grid; }
+
+    .winner-content {
+      display: grid;
+      gap: 18px;
+      justify-items: center;
+    }
+
+    .winner-title {
+      font-size: clamp(48px, 8vw, 106px);
+      font-weight: 900;
+    }
+
+    .mvp {
+      padding: 10px 26px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.9);
+      font-size: clamp(24px, 3.6vw, 48px);
+      font-weight: 900;
+      color: #ff8a5b;
+      text-shadow: 0 3px 0 #fff;
+    }
+
+    .wordbook {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: min(560px, 86vw);
+      height: 100vh;
+      padding: clamp(18px, 2.8vw, 34px);
+      background: rgba(255, 255, 255, 0.94);
+      border-right: 4px solid rgba(75, 85, 99, 0.28);
+      box-shadow: 24px 0 58px rgba(85, 94, 124, 0.2);
+      transform: translateX(-110%);
+      transition: transform 0.24s ease;
+      z-index: 42;
+      display: grid;
+      grid-template-rows: auto 1fr;
+      gap: 16px;
+      backdrop-filter: blur(12px);
+    }
+
+    .wordbook.show { transform: translateX(0); }
+
+    .wordbook h2 {
+      margin: 0;
+      font-size: clamp(28px, 4vw, 46px);
+      font-weight: 900;
+      color: #26334f;
+      text-align: center;
+    }
+
+    .wordbook-list {
+      display: grid;
+      gap: 8px;
+      align-content: start;
+      overflow-y: auto;
+      padding-right: 6px;
+    }
+
+    .wordbook-pair {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+      gap: 10px;
+      align-items: center;
+      padding: 10px 12px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #fff9f2, #f2fffb);
+      border: 2px solid rgba(75, 85, 99, 0.12);
+      font-size: clamp(15px, 1.7vw, 21px);
+      font-weight: 800;
+      word-break: keep-all;
+    }
+
+    .resume-wrap {
+      z-index: 46;
+    }
+
+    .confetti {
+      position: absolute;
+      top: -20px;
+      width: 12px;
+      height: 18px;
+      opacity: 0.92;
+      animation: fall linear forwards;
+      z-index: 31;
+    }
+
+    @keyframes fall {
+      to { transform: translateY(110vh) rotate(720deg); }
+    }
+
+    @media (max-width: 760px) {
+      .roster { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .teams-wrap { grid-template-columns: 1fr; overflow-y: auto; max-height: 76vh; }
+      .team-box { min-height: auto; }
+      .card-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); grid-template-rows: repeat(8, minmax(0, 1fr)); }
+      .big-cards { grid-template-columns: 1fr; }
+      .scoreboard { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <section id="start1" class="screen active">
+      <h1 class="title">신나는 복습게임</h1>
+      <button id="playBtn" class="play-button" aria-label="시작"></button>
+      <div id="ripple" class="ripple"></div>
+    </section>
+
+    <section id="start2" class="screen">
+      <div class="panel absence-panel">
+        <h2 class="panel-title">부재(제외)자를 선택해 주세요</h2>
+        <div id="roster" class="roster"></div>
+        <button id="finishAbsence" class="primary">선택 완료</button>
+      </div>
+    </section>
+
+    <section id="transition" class="screen">
+      <div id="wipe" class="wipe"></div>
+    </section>
+
+    <section id="start4" class="screen">
+      <div id="teamsWrap" class="teams-wrap">
+        <article class="team-box">
+          <h2>1팀</h2>
+          <div id="team1List" class="team-list"></div>
+        </article>
+        <article class="team-box">
+          <h2>2팀</h2>
+          <div id="team2List" class="team-list"></div>
+        </article>
+      </div>
+      <div id="teamConfirmWrap" class="bottom-action">
+        <button id="teamConfirm" class="primary">확인했습니다!</button>
+      </div>
+    </section>
+
+    <section id="start5" class="screen">
+      <div id="rulesPanel" class="panel rules-panel">
+        <h2 class="panel-title">게임 설명</h2>
+        <ol>
+          <li>카드에 적힌 숫자를 두개 외쳐 카드를 오픈하자!</li>
+          <li>카드의 한국어 - 몽골 발음이 일치하면 점수 획득!</li>
+          <li>카드의 내용을 잘 기억하고 일치하는 카드를 고르자!</li>
+          <li>정답을 맞추면 기회 1번 더 획득! 추가 기회는 최대 2회!</li>
+        </ol>
+      </div>
+      <div id="rulesConfirmWrap" class="bottom-action">
+        <button id="rulesConfirm" class="primary">확인했습니다!</button>
+      </div>
+    </section>
+
+    <section id="game" class="screen">
+      <div id="gameLayout" class="game-layout">
+        <div id="turnMessage" class="turn-message"></div>
+        <div id="cardGrid" class="card-grid"></div>
+        <div id="scoreboard" class="scoreboard">
+          <div class="score"><span>1팀</span><span id="score1">0점</span></div>
+          <div class="score"><span>2팀</span><span id="score2">0점</span></div>
+        </div>
+      </div>
+      <div id="turnPopup" class="turn-popup"></div>
+      <div id="diceOverlay" class="overlay">
+        <div id="diceBox" class="dice-box">
+          <div id="dice" class="dice">?</div>
+        </div>
+      </div>
+      <div id="matchView" class="match-view">
+        <div id="bigCards" class="big-cards"></div>
+      </div>
+      <div id="flash" class="flash">정답!</div>
+      <aside id="wordbook" class="wordbook">
+        <h2>단어장</h2>
+        <div id="wordbookList" class="wordbook-list"></div>
+      </aside>
+      <div id="resumeWrap" class="bottom-action resume-wrap">
+        <button id="resumeGame" class="primary">게임 재개</button>
+      </div>
+      <div id="endBanner" class="end-banner">게임 끝!</div>
+      <div id="winner" class="winner"></div>
+      <div id="restartWrap" class="bottom-action">
+        <button id="restart" class="primary">처음으로</button>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const people = [
+      ["91", "최원석", "남"], ["95", "김지은", "여"], ["95", "이찬미", "여"], ["95", "한수호", "남"], ["95", "이예진", "여"],
+      ["97", "이예슬", "여"], ["97", "함유빈", "여"], ["98", "김영진", "남"], ["98", "유희원", "여"],
+      ["00", "권오준", "남"], ["00", "이우주", "남"], ["01", "김완재", "남"], ["01", "한예진", "여"], ["02", "곽도영", "남"], ["02", "김승민", "남"], ["03", "김우림", "남"],
+      ["99", "최예담", "여"], ["04", "최정현", "남"], ["05", "김범서", "남"], ["05", "남시은", "여"], ["05", "우성원", "남"],
+      ["06", "김지원", "여"], ["06", "노시온", "남"], ["07", "김지원", "여"], ["07", "이예현", "여"], ["08", "김용빈", "남"],
+      ["08", "이형준", "남"]
+    ].map(([year, name, gender], index) => ({ id: index, year, name, gender, label: `${year}${name}` }));
+
+    const pairs = [
+      ["맛있다", "암트태"], ["예쁘다", "흐-르흥"], ["잘하고있어요", "새응 히즈 밴"], ["일어나세요", "버서-래"],
+      ["앉으세요", "소-가-래"], ["조금만 기다려 주세요", "조흥 훌레게레"], ["함께 사진찍자", "함트 조르가"], ["시작합니다", "고로와 이크"],
+      ["말을 따라 하세요", "다갓 헬레래"], ["조심하세요", "볼곰쥬때 배가래"], ["일", "넥(닉)"], ["이", "호요르(허요르)"],
+      ["삼", "고로(고롭)"], ["사", "두루브(두릅)"], ["오", "타우(탑)"], ["육", "조르가"], ["칠", "덜러"], ["팔", "나임"],
+      ["구", "유스"], ["십", "아롭(아롱)"]
+    ];
+
+    const state = {
+      absent: new Set(),
+      teams: [[], []],
+      cards: [],
+      selected: [],
+      scores: [0, 0],
+      firstTeam: 0,
+      turnTeam: 0,
+      teamPointers: [0, 0],
+      bonusStreak: 0,
+      playerMatches: {},
+      wrongStreak: 0,
+      locked: false,
+      preview: true
+    };
+
+    const $ = (id) => document.getElementById(id);
+    const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+    function show(id) {
+      document.querySelectorAll(".screen").forEach(screen => screen.classList.remove("active"));
+      $(id).classList.add("active");
+    }
+
+    function renderRoster() {
+      $("roster").innerHTML = "";
+      people.forEach(person => {
+        const btn = document.createElement("button");
+        btn.className = `person ${person.gender === "남" ? "male" : "female"}`;
+        btn.textContent = person.label;
+        btn.addEventListener("click", () => {
+          if (state.absent.has(person.id)) state.absent.delete(person.id);
+          else state.absent.add(person.id);
+          btn.classList.toggle("absent", state.absent.has(person.id));
+        });
+        $("roster").appendChild(btn);
+      });
+    }
+
+    function makeTeams() {
+      const active = people
+        .filter(person => !state.absent.has(person.id))
+        .sort((a, b) => Number(a.year) - Number(b.year) || a.name.localeCompare(b.name, "ko"));
+      const teams = [[], []];
+      active.forEach(person => {
+        const score = team => {
+          const sameGender = team.filter(member => member.gender === person.gender).length;
+          const nearAge = team.filter(member => Math.abs(Number(member.year) - Number(person.year)) <= 2).length;
+          return team.length * 3 + sameGender * 2 + nearAge;
+        };
+        const target = score(teams[0]) <= score(teams[1]) ? 0 : 1;
+        teams[target].push(person);
+      });
+      state.teams = teams;
+      state.teamPointers = [0, 0];
+    }
+
+    function renderTeams() {
+      ["team1List", "team2List"].forEach((id, teamIndex) => {
+        $(id).innerHTML = "";
+        state.teams[teamIndex]
+          .sort((a, b) => Number(a.year) - Number(b.year) || a.name.localeCompare(b.name, "ko"))
+          .forEach(person => {
+            const div = document.createElement("div");
+            div.className = "team-member";
+            div.textContent = person.label;
+            $(id).appendChild(div);
+          });
+      });
+    }
+
+    async function runWipe(message, next) {
+      show("transition");
+      const wipe = $("wipe");
+      wipe.className = "wipe enter";
+      wipe.textContent = message;
+      await sleep(1000);
+      wipe.textContent = "";
+      await sleep(300);
+      wipe.className = "wipe exit";
+      await sleep(220);
+      wipe.className = "wipe";
+      if (next) next();
+    }
+
+    async function goTeams() {
+      makeTeams();
+      renderTeams();
+      await runWipe("팀 생성 중", async () => {
+        show("start4");
+        $("teamsWrap").className = "teams-wrap";
+        $("teamConfirmWrap").classList.remove("show");
+        await sleep(30);
+        $("teamsWrap").classList.add("down");
+        await sleep(230);
+        $("teamConfirmWrap").classList.add("show");
+      });
+    }
+
+    async function goRules() {
+      $("teamConfirmWrap").classList.remove("show");
+      $("teamsWrap").className = "teams-wrap up";
+      await sleep(220);
+      show("start5");
+      $("rulesPanel").className = "panel rules-panel";
+      $("rulesConfirmWrap").classList.remove("show");
+      await sleep(30);
+      $("rulesPanel").classList.add("down");
+      await sleep(1000);
+      $("rulesConfirmWrap").classList.add("show");
+    }
+
+    function shuffle(array) {
+      const clone = [...array];
+      for (let i = clone.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [clone[i], clone[j]] = [clone[j], clone[i]];
+      }
+      return clone;
+    }
+
+    function setupCards() {
+      state.cards = shuffle(pairs.flatMap((pair, pairId) => [
+        { pairId, type: "ko", text: pair[0] },
+        { pairId, type: "mn", text: pair[1] }
+      ])).map((card, index) => ({ ...card, number: index + 1, matched: false }));
+      state.selected = [];
+      state.scores = [0, 0];
+      state.bonusStreak = 0;
+      state.playerMatches = {};
+      state.wrongStreak = 0;
+      state.locked = true;
+      state.preview = true;
+      updateScores();
+      renderCards();
+      $("turnMessage").textContent = "";
+    }
+
+    function renderCards() {
+      const grid = $("cardGrid");
+      grid.innerHTML = "";
+      state.cards.forEach(card => {
+        const btn = document.createElement("button");
+        btn.className = "memory-card";
+        btn.dataset.number = card.number;
+        btn.textContent = card.matched ? card.text : card.number;
+        if (state.selected.includes(card.number)) btn.classList.add("selected");
+        if (card.matched) btn.classList.add("revealed", "locked");
+        btn.addEventListener("click", () => selectCard(card.number));
+        grid.appendChild(btn);
+      });
+    }
+
+    function updateScores() {
+      $("score1").textContent = `${state.scores[0]}점`;
+      $("score2").textContent = `${state.scores[1]}점`;
+    }
+
+    async function startGame() {
+      $("rulesConfirmWrap").classList.remove("show");
+      show("game");
+      $("winner").classList.remove("show");
+      $("restartWrap").classList.remove("show");
+      hideWordbook();
+      clearConfetti();
+      clearFeedbackEffects();
+      setupCards();
+      await sleep(1500);
+      await rollDice();
+    }
+
+    async function rollDice() {
+      $("gameLayout").classList.add("blurred");
+      $("diceOverlay").classList.add("show");
+      $("diceBox").className = "dice-box";
+      $("dice").className = "dice";
+      $("dice").textContent = "?";
+      await sleep(30);
+      $("diceBox").classList.add("down");
+      await sleep(350);
+      $("dice").classList.add("roll");
+      const faces = [1, 2, 3, 4, 5, 6];
+      const timer = setInterval(() => {
+        $("dice").textContent = faces[Math.floor(Math.random() * faces.length)];
+      }, 90);
+      await sleep(1400);
+      clearInterval(timer);
+      const result = faces[Math.floor(Math.random() * faces.length)];
+      state.firstTeam = [1, 3, 5].includes(result) ? 0 : 1;
+      state.turnTeam = state.firstTeam;
+      $("dice").className = "dice pop";
+      $("dice").textContent = result;
+      await sleep(500);
+      await runWipe(`${state.firstTeam + 1}팀 먼저 선택!`, () => {});
+      show("game");
+      await sleep(100);
+      $("diceBox").className = "dice-box up";
+      await sleep(220);
+      $("diceOverlay").classList.remove("show");
+      $("gameLayout").classList.remove("blurred");
+      state.locked = false;
+      state.preview = false;
+      renderCards();
+      setTurnMessage(true);
+    }
+
+    function currentPlayer() {
+      const team = state.teams[state.turnTeam];
+      if (!team.length) return "팀원";
+      return team[state.teamPointers[state.turnTeam] % team.length].label;
+    }
+
+    function setTurnMessage(animated = true) {
+      const message = $("turnMessage");
+      const text = `${state.turnTeam + 1}팀의 ${currentPlayer()} 선택해주세요`;
+      message.textContent = text;
+      if (!animated) return;
+      const popup = $("turnPopup");
+      popup.textContent = text;
+      popup.classList.remove("show");
+      void popup.offsetWidth;
+      popup.classList.add("show");
+      window.setTimeout(() => popup.classList.remove("show"), 820);
+    }
+
+    function advanceTurn() {
+      state.teamPointers[state.turnTeam] += 1;
+      state.turnTeam = state.turnTeam === 0 ? 1 : 0;
+      state.bonusStreak = 0;
+      setTurnMessage(true);
+    }
+
+    function stayForBonus() {
+      state.bonusStreak += 1;
+      setTurnMessage(true);
+    }
+
+    function selectCard(number) {
+      if (state.locked || state.preview) return;
+      const card = state.cards.find(item => item.number === number);
+      if (!card || card.matched || state.selected.includes(number)) return;
+      state.selected.push(number);
+      renderCards();
+      if (state.selected.length === 2) resolveSelection();
+    }
+
+    async function resolveSelection() {
+      state.locked = true;
+      const scorer = currentPlayer();
+      await sleep(220);
+      const chosen = state.selected
+        .map(number => state.cards.find(card => card.number === number));
+      showBigCards(chosen);
+      await sleep(850);
+      const isMatch = chosen[0].pairId === chosen[1].pairId && chosen[0].type !== chosen[1].type;
+      if (isMatch) {
+        state.wrongStreak = 0;
+        playFeedback("right");
+        await sleep(760);
+        chosen.forEach(card => card.matched = true);
+        state.scores[state.turnTeam] += 5;
+        state.playerMatches[scorer] = (state.playerMatches[scorer] || 0) + 1;
+        updateScores();
+        state.selected = [];
+        hideBigCards();
+        renderCards();
+        if (state.cards.every(card => card.matched)) {
+          await finishGame();
+          return;
+        }
+        if (state.bonusStreak < 1) stayForBonus();
+        else advanceTurn();
+      } else {
+        state.wrongStreak += 1;
+        playFeedback("wrong");
+        await sleep(760);
+        state.selected = [];
+        hideBigCards();
+        renderCards();
+        advanceTurn();
+        if (state.wrongStreak >= 20) {
+          await showWordbook();
+          return;
+        }
+      }
+      state.locked = false;
+    }
+
+    function showBigCards(cards) {
+      $("bigCards").innerHTML = "";
+      cards.forEach(card => {
+        const div = document.createElement("div");
+        div.className = "big-card";
+        div.innerHTML = `<div class="num">${card.number}</div><div class="word">${card.text}</div>`;
+        $("bigCards").appendChild(div);
+      });
+      $("matchView").classList.add("show");
+    }
+
+    function hideBigCards() {
+      $("matchView").classList.remove("show");
+      $("bigCards").innerHTML = "";
+    }
+
+    function playFeedback(type) {
+      clearFeedbackEffects();
+      const flash = $("flash");
+      flash.textContent = type === "right" ? "정답!" : "땡!";
+      flash.className = `flash ${type === "right" ? "right" : "wrong"}`;
+      void flash.offsetWidth;
+      flash.classList.add("show");
+      if (type === "right") makeAnswerRays();
+      else makeWrongParticles();
+      window.setTimeout(clearFeedbackEffects, 900);
+    }
+
+    function makeWrongParticles() {
+      const app = document.querySelector(".app");
+      for (let i = 0; i < 34; i++) {
+        const particle = document.createElement("div");
+        particle.className = "burst-particle feedback-effect";
+        const angle = (Math.PI * 2 * i) / 34;
+        const distance = 90 + Math.random() * 190;
+        particle.style.setProperty("--x", `${Math.cos(angle) * distance}px`);
+        particle.style.setProperty("--y", `${Math.sin(angle) * distance}px`);
+        particle.style.animationDelay = `${Math.random() * 0.08}s`;
+        app.appendChild(particle);
+      }
+    }
+
+    function makeAnswerRays() {
+      const app = document.querySelector(".app");
+      for (let i = 0; i < 18; i++) {
+        const ray = document.createElement("div");
+        ray.className = "answer-ray feedback-effect";
+        ray.style.setProperty("--angle", `${i * 20}deg`);
+        ray.style.animationDelay = `${Math.random() * 0.08}s`;
+        app.appendChild(ray);
+      }
+    }
+
+    function clearFeedbackEffects() {
+      $("flash").className = "flash";
+      document.querySelectorAll(".feedback-effect").forEach(effect => effect.remove());
+    }
+
+    async function finishGame() {
+      state.locked = true;
+      $("turnMessage").textContent = "";
+      $("endBanner").classList.add("show");
+      await sleep(1600);
+      const winnerText = state.scores[0] === state.scores[1] ? "무승부!" : `${state.scores[0] > state.scores[1] ? 1 : 2}팀 승리!`;
+      $("winner").innerHTML = `
+        <div class="winner-content">
+          <div class="winner-title">${winnerText}</div>
+          <div class="mvp">MVP: ${getMvp()}</div>
+        </div>
+      `;
+      $("winner").classList.add("show");
+      makeConfetti();
+      await sleep(3000);
+      $("restartWrap").classList.add("show");
+    }
+
+    function getMvp() {
+      const entries = Object.entries(state.playerMatches);
+      if (!entries.length) return "없음";
+      entries.sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], "ko"));
+      const [name, count] = entries[0];
+      return `${name} (${count * 5}점)`;
+    }
+
+    async function showWordbook() {
+      state.locked = true;
+      renderWordbook();
+      $("wordbook").classList.add("show");
+      $("resumeWrap").classList.remove("show");
+      await sleep(1000);
+      $("resumeWrap").classList.add("show");
+    }
+
+    function renderWordbook() {
+      const list = $("wordbookList");
+      list.innerHTML = "";
+      pairs.forEach(pair => {
+        const row = document.createElement("div");
+        row.className = "wordbook-pair";
+        row.innerHTML = `<span>${pair[0]}</span><span>-</span><span>${pair[1]}</span>`;
+        list.appendChild(row);
+      });
+    }
+
+    function hideWordbook() {
+      $("wordbook").classList.remove("show");
+      $("resumeWrap").classList.remove("show");
+    }
+
+    function resumeGame() {
+      hideWordbook();
+      state.wrongStreak = 0;
+      state.locked = false;
+    }
+
+    function makeConfetti() {
+      clearConfetti();
+      const colors = ["#ef4444", "#f97316", "#eab308", "#22c55e", "#06b6d4", "#3b82f6", "#a855f7", "#ec4899"];
+      for (let i = 0; i < 120; i++) {
+        const piece = document.createElement("div");
+        piece.className = "confetti";
+        piece.style.left = `${Math.random() * 100}vw`;
+        piece.style.background = colors[i % colors.length];
+        piece.style.animationDuration = `${2.2 + Math.random() * 2.4}s`;
+        piece.style.animationDelay = `${Math.random() * 1.2}s`;
+        document.querySelector(".app").appendChild(piece);
+      }
+    }
+
+    function clearConfetti() {
+      document.querySelectorAll(".confetti").forEach(piece => piece.remove());
+    }
+
+    function resetAll() {
+      state.absent.clear();
+      state.teams = [[], []];
+      state.cards = [];
+      state.selected = [];
+      state.scores = [0, 0];
+      state.teamPointers = [0, 0];
+      state.bonusStreak = 0;
+      state.playerMatches = {};
+      state.wrongStreak = 0;
+      state.locked = false;
+      $("winner").classList.remove("show");
+      $("restartWrap").classList.remove("show");
+      $("endBanner").classList.remove("show");
+      hideWordbook();
+      clearConfetti();
+      clearFeedbackEffects();
+      renderRoster();
+      show("start1");
+    }
+
+    $("playBtn").addEventListener("click", async () => {
+      $("ripple").classList.remove("run");
+      void $("ripple").offsetWidth;
+      $("ripple").classList.add("run");
+      await sleep(560);
+      show("start2");
+    });
+
+    $("finishAbsence").addEventListener("click", goTeams);
+    $("teamConfirm").addEventListener("click", goRules);
+    $("rulesConfirm").addEventListener("click", startGame);
+    $("restart").addEventListener("click", resetAll);
+    $("resumeGame").addEventListener("click", resumeGame);
+
+    renderRoster();
+  </script>
+</body>
+</html>
