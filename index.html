@@ -83,15 +83,16 @@
       font-weight: 900;
       letter-spacing: 0;
       color: #26334f;
-      text-shadow: 0 5px 0 rgba(255, 255, 255, 0.95), 0 12px 26px rgba(255, 138, 91, 0.18);
+      text-shadow: 0 5px 0 rgba(255, 255, 255, 0.95), 0 12px 26px rgba(79, 140, 255, 0.2);
     }
 
     .play-button {
       width: clamp(118px, 15vw, 180px);
       aspect-ratio: 1;
       border-radius: 50%;
-      background: linear-gradient(135deg, #ffcf6f, #ff8a5b 50%, #ff7ab6);
-      box-shadow: 0 22px 54px rgba(255, 122, 182, 0.32), inset 0 -8px 0 rgba(186, 74, 103, 0.16);
+      background: linear-gradient(145deg, #fff2a6, #ffc1d9 55%, #aeeaff);
+      border: 4px solid rgba(255, 255, 255, 0.82);
+      box-shadow: 0 22px 54px rgba(79, 140, 255, 0.2), 0 12px 0 rgba(103, 72, 115, 0.1), inset 0 -8px 0 rgba(79, 140, 255, 0.1);
       display: grid;
       place-items: center;
       transition: transform 0.18s ease;
@@ -109,13 +110,124 @@
       border-left: 52px solid #fff;
     }
 
+    .start-actions {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: clamp(18px, 4vw, 44px);
+    }
+
+    .practice-button {
+      width: clamp(83px, 10.5vw, 126px);
+      aspect-ratio: 1;
+      border-radius: 50%;
+      background: linear-gradient(145deg, #ffffff, #f2fffb 48%, #dff6ff);
+      border: 4px solid rgba(255, 255, 255, 0.86);
+      box-shadow: 0 16px 38px rgba(85, 94, 124, 0.14), 0 8px 0 rgba(79, 140, 255, 0.08), inset 0 -6px 0 rgba(255, 122, 182, 0.08);
+      color: #26334f;
+      font-size: clamp(20px, 2.4vw, 32px);
+      font-weight: 900;
+      transition: transform 0.18s ease, background 0.18s ease;
+    }
+
+    .practice-button:hover {
+      transform: scale(1.06);
+      background: linear-gradient(145deg, #fff2a6, #ffe8f3 55%, #aeeaff);
+    }
+
+    .practice-layout {
+      width: min(1120px, 94vw);
+      min-height: 72vh;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      gap: 22px;
+      align-items: center;
+      justify-items: center;
+    }
+
+    .practice-card {
+      width: min(760px, 82vw);
+      min-height: 340px;
+      border-radius: 8px;
+      border: 4px solid var(--soft-line);
+      background: rgba(255, 255, 255, 0.9);
+      box-shadow: 0 24px 60px rgba(85, 94, 124, 0.18);
+      display: grid;
+      grid-template-rows: 1fr auto 1fr;
+      gap: 16px;
+      align-items: center;
+      justify-items: center;
+      padding: clamp(22px, 4vw, 48px);
+      text-align: center;
+    }
+
+    .practice-word {
+      font-size: clamp(42px, 6.6vw, 88px);
+      font-weight: 900;
+      color: #26334f;
+      word-break: keep-all;
+    }
+
+    .practice-dash {
+      width: min(260px, 45vw);
+      height: 6px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #4f8cff, #ff7ab6);
+    }
+
+    .practice-nav {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: clamp(54px, 7vw, 82px);
+      aspect-ratio: 1;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.92);
+      color: #26334f;
+      border: 3px solid rgba(75, 85, 99, 0.18);
+      box-shadow: 0 12px 30px rgba(85, 94, 124, 0.14);
+      font-size: clamp(34px, 5vw, 56px);
+      font-weight: 900;
+    }
+
+    .practice-nav.prev { left: clamp(16px, 4vw, 58px); }
+    .practice-nav.next { right: clamp(16px, 4vw, 58px); }
+
+    .practice-count {
+      font-size: clamp(18px, 2.4vw, 28px);
+      font-weight: 900;
+      color: #6b7280;
+    }
+
+    .exit-button {
+      min-width: 180px;
+      min-height: 54px;
+      padding: 0 28px;
+      border-radius: 8px;
+      background: #fff;
+      border: 3px solid rgba(75, 85, 99, 0.2);
+      color: #26334f;
+      font-size: clamp(18px, 2vw, 25px);
+      font-weight: 900;
+      box-shadow: 0 10px 24px rgba(85, 94, 124, 0.12);
+      transition: background 0.16s ease, color 0.16s ease, transform 0.16s ease;
+    }
+
+    .exit-button:hover {
+      background: #ef4444;
+      color: #fff;
+      transform: translateY(-2px);
+    }
+
     .ripple {
       position: absolute;
       width: 20px;
       aspect-ratio: 1;
       border-radius: 50%;
-      border: 8px solid rgba(249, 115, 22, 0.45);
-      transform: scale(0);
+      left: 50%;
+      top: 50%;
+      border: 8px solid rgba(79, 140, 255, 0.42);
+      transform: translate(-50%, -50%) scale(0);
       opacity: 0;
       pointer-events: none;
     }
@@ -125,8 +237,8 @@
     }
 
     @keyframes ripple {
-      0% { transform: scale(0); opacity: 0.9; }
-      100% { transform: scale(52); opacity: 0; }
+      0% { transform: translate(-50%, -50%) scale(0); opacity: 0.9; }
+      100% { transform: translate(-50%, -50%) scale(52); opacity: 0; }
     }
 
     .panel {
@@ -719,6 +831,7 @@
       .card-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); grid-template-rows: repeat(8, minmax(0, 1fr)); }
       .big-cards { grid-template-columns: 1fr; }
       .scoreboard { grid-template-columns: 1fr; }
+      .start-actions { flex-direction: column; }
     }
   </style>
 </head>
@@ -726,8 +839,25 @@
   <main class="app">
     <section id="start1" class="screen active">
       <h1 class="title">신나는 복습게임</h1>
-      <button id="playBtn" class="play-button" aria-label="시작"></button>
+      <div class="start-actions">
+        <button id="playBtn" class="play-button" aria-label="시작"></button>
+        <button id="practiceBtn" class="practice-button" aria-label="연습">연습</button>
+      </div>
       <div id="ripple" class="ripple"></div>
+    </section>
+
+    <section id="practice" class="screen">
+      <div class="practice-layout">
+        <div id="practiceCount" class="practice-count">1 / 20</div>
+        <div class="practice-card">
+          <div id="practiceKo" class="practice-word"></div>
+          <div class="practice-dash"></div>
+          <div id="practiceMn" class="practice-word"></div>
+        </div>
+        <button id="exitPractice" class="exit-button">나가기</button>
+      </div>
+      <button id="practicePrev" class="practice-nav prev" aria-label="이전">&lt;</button>
+      <button id="practiceNext" class="practice-nav next" aria-label="다음">&gt;</button>
     </section>
 
     <section id="start2" class="screen">
@@ -809,12 +939,19 @@
 
   <script>
     const people = [
-      ["91", "최원석", "남"], ["95", "김지은", "여"], ["95", "이찬미", "여"], ["95", "한수호", "남"], ["95", "이예진", "여"],
-      ["97", "이예슬", "여"], ["97", "함유빈", "여"], ["98", "김영진", "남"], ["98", "유희원", "여"],
-      ["00", "권오준", "남"], ["00", "이우주", "남"], ["01", "김완재", "남"], ["01", "한예진", "여"], ["02", "곽도영", "남"], ["02", "김승민", "남"], ["03", "김우림", "남"],
-      ["99", "최예담", "여"], ["04", "최정현", "남"], ["05", "김범서", "남"], ["05", "남시은", "여"], ["05", "우성원", "남"],
-      ["06", "김지원", "여"], ["06", "노시온", "남"], ["07", "김지원", "여"], ["07", "이예현", "여"], ["08", "김용빈", "남"],
-      ["08", "이형준", "남"]
+      ["91", "최원석", "남"],
+      ["95", "김지은", "여"], ["95", "이찬미", "여"], ["95", "한수호", "남"], ["95", "이예진", "여"],
+      ["97", "이예슬", "여"], ["97", "함유빈", "여"],
+      ["98", "김영진", "남"], ["98", "유희원", "여"],
+      ["99", "최예담", "여"],
+      ["00", "권오준", "남"], ["00", "이우주", "남"],
+      ["01", "김완재", "남"], ["01", "한예진", "여"],
+      ["02", "곽도영", "남"], ["02", "김승민", "남"],
+      ["03", "김우림", "남"],
+      ["04", "최정현", "남"],
+      ["05", "김범서", "남"], ["05", "남시은", "여"], ["05", "우성원", "남"],
+      ["06", "김지원", "여"], ["06", "노시온", "남"],
+      ["07", "김지원", "여"], ["07", "이예현", "여"], ["07", "김용빈", "남"], ["07", "이형준", "남"]
     ].map(([year, name, gender], index) => ({ id: index, year, name, gender, label: `${year}${name}` }));
 
     const pairs = [
@@ -837,12 +974,15 @@
       bonusStreak: 0,
       playerMatches: {},
       wrongStreak: 0,
+      practiceIndex: 0,
       locked: false,
       preview: true
     };
 
     const $ = (id) => document.getElementById(id);
     const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+    const birthYear = (year) => Number(year) >= 50 ? 1900 + Number(year) : 2000 + Number(year);
+    const compareAge = (a, b) => birthYear(a.year) - birthYear(b.year) || a.name.localeCompare(b.name, "ko");
 
     function show(id) {
       document.querySelectorAll(".screen").forEach(screen => screen.classList.remove("active"));
@@ -851,7 +991,10 @@
 
     function renderRoster() {
       $("roster").innerHTML = "";
-      people.forEach(person => {
+      people
+        .slice()
+        .sort(compareAge)
+        .forEach(person => {
         const btn = document.createElement("button");
         btn.className = `person ${person.gender === "남" ? "male" : "female"}`;
         btn.textContent = person.label;
@@ -864,15 +1007,37 @@
       });
     }
 
+    function openPractice() {
+      state.practiceIndex = 0;
+      renderPractice();
+      show("practice");
+    }
+
+    function renderPractice() {
+      const pair = pairs[state.practiceIndex];
+      $("practiceKo").textContent = pair[0];
+      $("practiceMn").textContent = pair[1];
+      $("practiceCount").textContent = `${state.practiceIndex + 1} / ${pairs.length}`;
+    }
+
+    function movePractice(direction) {
+      state.practiceIndex = (state.practiceIndex + direction + pairs.length) % pairs.length;
+      renderPractice();
+    }
+
+    function closePractice() {
+      show("start1");
+    }
+
     function makeTeams() {
       const active = people
         .filter(person => !state.absent.has(person.id))
-        .sort((a, b) => Number(a.year) - Number(b.year) || a.name.localeCompare(b.name, "ko"));
+        .sort(compareAge);
       const teams = [[], []];
       active.forEach(person => {
         const score = team => {
           const sameGender = team.filter(member => member.gender === person.gender).length;
-          const nearAge = team.filter(member => Math.abs(Number(member.year) - Number(person.year)) <= 2).length;
+          const nearAge = team.filter(member => Math.abs(birthYear(member.year) - birthYear(person.year)) <= 2).length;
           return team.length * 3 + sameGender * 2 + nearAge;
         };
         const target = score(teams[0]) <= score(teams[1]) ? 0 : 1;
@@ -886,7 +1051,7 @@
       ["team1List", "team2List"].forEach((id, teamIndex) => {
         $(id).innerHTML = "";
         state.teams[teamIndex]
-          .sort((a, b) => Number(a.year) - Number(b.year) || a.name.localeCompare(b.name, "ko"))
+          .sort(compareAge)
           .forEach(person => {
             const div = document.createElement("div");
             div.className = "team-member";
@@ -1268,9 +1433,13 @@
     }
 
     $("playBtn").addEventListener("click", async () => {
-      $("ripple").classList.remove("run");
-      void $("ripple").offsetWidth;
-      $("ripple").classList.add("run");
+      const buttonRect = $("playBtn").getBoundingClientRect();
+      const ripple = $("ripple");
+      ripple.style.left = `${buttonRect.left + buttonRect.width / 2}px`;
+      ripple.style.top = `${buttonRect.top + buttonRect.height / 2}px`;
+      ripple.classList.remove("run");
+      void ripple.offsetWidth;
+      ripple.classList.add("run");
       await sleep(560);
       show("start2");
     });
@@ -1280,6 +1449,17 @@
     $("rulesConfirm").addEventListener("click", startGame);
     $("restart").addEventListener("click", resetAll);
     $("resumeGame").addEventListener("click", resumeGame);
+    $("practiceBtn").addEventListener("click", openPractice);
+    $("practicePrev").addEventListener("click", () => movePractice(-1));
+    $("practiceNext").addEventListener("click", () => movePractice(1));
+    $("exitPractice").addEventListener("click", closePractice);
+
+    document.addEventListener("keydown", event => {
+      if (!$("practice").classList.contains("active")) return;
+      if (event.key === "ArrowLeft") movePractice(-1);
+      if (event.key === "ArrowRight") movePractice(1);
+      if (event.key === "Escape") closePractice();
+    });
 
     renderRoster();
   </script>
