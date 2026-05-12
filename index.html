@@ -481,14 +481,42 @@
     .memory-card:hover { transform: translateY(-2px); }
     .memory-card.locked { cursor: default; }
 
+    .memory-card.deal-ready {
+      opacity: 0;
+      transform: translateY(-120vh) rotate(-10deg);
+    }
+
+    .memory-card.dealt {
+      animation: cardDealDrop 0.28s cubic-bezier(.17,.88,.24,1.12) forwards;
+    }
+
+    @keyframes cardDealDrop {
+      0% { opacity: 0; transform: translateY(-120vh) rotate(-10deg); }
+      72% { opacity: 1; transform: translateY(8px) rotate(2deg); }
+      100% { opacity: 1; transform: translateY(0) rotate(0); }
+    }
+
     .memory-card.selected::after {
       content: "";
       position: absolute;
       inset: 7px;
-      border: 7px solid rgba(37, 99, 235, 0.86);
       border-radius: 8px;
-      box-shadow: inset 0 0 0 3px rgba(255, 255, 255, 0.72);
+      border: 7px solid var(--select-color);
+      box-shadow:
+        inset 0 0 0 3px rgba(255, 255, 255, 0.72),
+        0 0 12px var(--select-glow),
+        0 0 24px var(--select-glow);
       pointer-events: none;
+    }
+
+    .memory-card.selected-first {
+      --select-color: #fb923c;
+      --select-glow: rgba(251, 146, 60, 0.9);
+    }
+
+    .memory-card.selected-second {
+      --select-color: #3b82f6;
+      --select-glow: rgba(59, 130, 246, 0.9);
     }
 
     .memory-card.revealed {
@@ -601,16 +629,42 @@
       box-shadow: 0 24px 58px rgba(85, 94, 124, 0.2);
       padding: 22px;
       display: grid;
-      grid-template-rows: auto 1fr;
-      gap: 14px;
+      grid-template-rows: 74px 1fr;
+      gap: 6px;
       text-align: center;
       animation: zoomIn 0.2s ease;
+    }
+
+    .big-card.first-choice {
+      border-color: #fb923c;
+      box-shadow: 0 24px 58px rgba(251, 146, 60, 0.22), inset 0 0 0 4px rgba(255, 237, 213, 0.9);
+    }
+
+    .big-card.second-choice {
+      border-color: #3b82f6;
+      box-shadow: 0 24px 58px rgba(59, 130, 246, 0.22), inset 0 0 0 4px rgba(219, 234, 254, 0.92);
+    }
+
+    .big-card.flying {
+      opacity: 0;
+      animation: none;
+      transform: translate(var(--from-x), var(--from-y)) scale(0.22);
+    }
+
+    .big-card.flying.fly-in {
+      animation: cardFlyIn 0.25s cubic-bezier(.17,.86,.24,1.08) forwards;
+    }
+
+    .big-card.fly-out {
+      animation: cardFlyOut 0.25s cubic-bezier(.55,.04,.72,.95) forwards;
     }
 
     .big-card .num {
       font-size: clamp(34px, 5vw, 68px);
       font-weight: 900;
-      color: var(--accent);
+      color: #111827;
+      align-self: start;
+      margin-top: -12px;
     }
 
     .big-card .word {
@@ -623,6 +677,32 @@
     @keyframes zoomIn {
       from { transform: scale(0.65); opacity: 0; }
       to { transform: scale(1); opacity: 1; }
+    }
+
+    @keyframes cardFlyIn {
+      0% {
+        transform: translate(var(--from-x), var(--from-y)) scale(0.22);
+        opacity: 0.25;
+      }
+      72% {
+        transform: translate(0, 0) scale(1.06);
+        opacity: 1;
+      }
+      100% {
+        transform: translate(0, 0) scale(1);
+        opacity: 1;
+      }
+    }
+
+    @keyframes cardFlyOut {
+      0% {
+        transform: translate(0, 0) scale(1);
+        opacity: 1;
+      }
+      100% {
+        transform: translate(var(--from-x), var(--from-y)) scale(0.22);
+        opacity: 0;
+      }
     }
 
     .flash {
@@ -957,9 +1037,9 @@
     const pairs = [
       ["맛있다", "암트태"], ["예쁘다", "흐-르흥"], ["잘하고있어요", "새응 히즈 밴"], ["일어나세요", "버서-래"],
       ["앉으세요", "소-가-래"], ["조금만 기다려 주세요", "조흥 훌레게레"], ["함께 사진찍자", "함트 조르가"], ["시작합니다", "고로와 이크"],
-      ["말을 따라 하세요", "다갓 헬레래"], ["조심하세요", "볼곰쥬때 배가래"], ["일", "넥(닉)"], ["이", "호요르(허요르)"],
-      ["삼", "고로(고롭)"], ["사", "두루브(두릅)"], ["오", "타우(탑)"], ["육", "조르가"], ["칠", "덜러"], ["팔", "나임"],
-      ["구", "유스"], ["십", "아롭(아롱)"]
+      ["말을 따라 하세요", "다갓 헬레래"], ["조심하세요", "볼곰쥬때 배가래"], ["1 (하나)", "넥(닉)"], ["2 (둘)", "호요르(허요르)"],
+      ["3 (셋)", "고로(고롭)"], ["4 (넷)", "두루브(두릅)"], ["5 (다섯)", "타우(탑)"], ["6 (여섯)", "조르가"], ["7 (일곱)", "덜러"], ["8 (여덟)", "나임"],
+      ["9 (아홉)", "유스"], ["10 (열)", "아롭(아롱)"]
     ];
 
     const state = {
@@ -975,6 +1055,8 @@
       playerMatches: {},
       wrongStreak: 0,
       practiceIndex: 0,
+      dealing: false,
+      dealtCount: 40,
       locked: false,
       preview: true
     };
@@ -1111,7 +1193,7 @@
       return clone;
     }
 
-    function setupCards() {
+    function setupCards(deal = false) {
       state.cards = shuffle(pairs.flatMap((pair, pairId) => [
         { pairId, type: "ko", text: pair[0] },
         { pairId, type: "mn", text: pair[1] }
@@ -1121,6 +1203,8 @@
       state.bonusStreak = 0;
       state.playerMatches = {};
       state.wrongStreak = 0;
+      state.dealing = deal;
+      state.dealtCount = deal ? 0 : 40;
       state.locked = true;
       state.preview = true;
       updateScores();
@@ -1136,7 +1220,14 @@
         btn.className = "memory-card";
         btn.dataset.number = card.number;
         btn.textContent = card.matched ? card.text : card.number;
-        if (state.selected.includes(card.number)) btn.classList.add("selected");
+        if (state.dealing) {
+          btn.classList.add("deal-ready");
+          if (card.number <= state.dealtCount) btn.classList.add("dealt");
+        }
+        const selectedIndex = state.selected.indexOf(card.number);
+        if (selectedIndex !== -1) {
+          btn.classList.add("selected", selectedIndex === 0 ? "selected-first" : "selected-second");
+        }
         if (card.matched) btn.classList.add("revealed", "locked");
         btn.addEventListener("click", () => selectCard(card.number));
         grid.appendChild(btn);
@@ -1156,9 +1247,22 @@
       hideWordbook();
       clearConfetti();
       clearFeedbackEffects();
-      setupCards();
-      await sleep(1500);
+      setupCards(true);
+      await dealCardsAnimation();
+      await sleep(500);
       await rollDice();
+    }
+
+    async function dealCardsAnimation() {
+      for (let number = 1; number <= 40; number++) {
+        state.dealtCount = number;
+        const card = document.querySelector(`.memory-card[data-number="${number}"]`);
+        if (card) card.classList.add("dealt");
+        await sleep(50);
+      }
+      await sleep(280);
+      state.dealing = false;
+      document.querySelectorAll(".memory-card").forEach(card => card.classList.remove("deal-ready", "dealt"));
     }
 
     async function rollDice() {
@@ -1249,12 +1353,12 @@
         state.wrongStreak = 0;
         playFeedback("right");
         await sleep(760);
+        await hideBigCards(true);
         chosen.forEach(card => card.matched = true);
         state.scores[state.turnTeam] += 5;
         state.playerMatches[scorer] = (state.playerMatches[scorer] || 0) + 1;
         updateScores();
         state.selected = [];
-        hideBigCards();
         renderCards();
         if (state.cards.every(card => card.matched)) {
           await finishGame();
@@ -1266,8 +1370,8 @@
         state.wrongStreak += 1;
         playFeedback("wrong");
         await sleep(760);
+        await hideBigCards(true);
         state.selected = [];
-        hideBigCards();
         renderCards();
         advanceTurn();
         if (state.wrongStreak >= 20) {
@@ -1279,17 +1383,42 @@
     }
 
     function showBigCards(cards) {
+      const origins = cards.map(card => {
+        const source = document.querySelector(`.memory-card[data-number="${card.number}"]`);
+        return source ? source.getBoundingClientRect() : null;
+      });
       $("bigCards").innerHTML = "";
-      cards.forEach(card => {
+      cards.forEach((card, index) => {
         const div = document.createElement("div");
-        div.className = "big-card";
+        div.className = `big-card ${index === 0 ? "first-choice" : "second-choice"} flying`;
         div.innerHTML = `<div class="num">${card.number}</div><div class="word">${card.text}</div>`;
         $("bigCards").appendChild(div);
       });
       $("matchView").classList.add("show");
+      Array.from($("bigCards").children).forEach((cardEl, index) => {
+        const origin = origins[index];
+        if (!origin) {
+          cardEl.classList.remove("flying");
+          return;
+        }
+        const target = cardEl.getBoundingClientRect();
+        const fromX = origin.left + origin.width / 2 - (target.left + target.width / 2);
+        const fromY = origin.top + origin.height / 2 - (target.top + target.height / 2);
+        cardEl.style.setProperty("--from-x", `${fromX}px`);
+        cardEl.style.setProperty("--from-y", `${fromY}px`);
+        void cardEl.offsetWidth;
+        cardEl.classList.add("fly-in");
+      });
     }
 
-    function hideBigCards() {
+    async function hideBigCards(animated = false) {
+      if (animated && $("matchView").classList.contains("show")) {
+        Array.from($("bigCards").children).forEach(cardEl => {
+          cardEl.classList.remove("fly-in");
+          cardEl.classList.add("fly-out");
+        });
+        await sleep(250);
+      }
       $("matchView").classList.remove("show");
       $("bigCards").innerHTML = "";
     }
