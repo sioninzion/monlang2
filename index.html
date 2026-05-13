@@ -160,6 +160,7 @@ h1{font-size:clamp(40px,9vw,88px);line-height:.92}
       <button class="rbtn" id="previousChapter">◀  이전 슬라이드</button>
       <button class="rbtn" id="nextChapter">다음 슬라이드  ▶</button>
       <button class="rbtn" id="toggleFullscreen">전체화면 전환</button>
+      <button class="rbtn" id="sphereGallery">복음 스피어 보기</button>
     </div>
     <div class="card" id="manualRoomCard">
       <span class="meta">Manual Connect</span>
@@ -233,7 +234,7 @@ const S={mode:'home',roomId:'',chapter:1,prevChapter:1,
   Tgt:0,        // target T (what we're animating toward)
   Tspeed:1,     // playback speed multiplier while tweening
   lastRealTime:performance.now(),
-  black:false,immersive:false,db:null,ready:false,unsub:null,remoteColor:'#ffd166',particles:[]};
+  black:false,immersive:false,gallery:false,galleryProg:0,db:null,ready:false,unsub:null,remoteColor:'#ffd166',particles:[]};
 
 // ─── Particle pools ─────────────────────────────────────────────────────────
 let sphere=[], stars=[], rain=[], wind=[], dust=[];
@@ -1558,6 +1559,37 @@ function xfade(fromN,toN,dur=0.6){
   return ease(clamp((S.T-boundary)/dur));
 }
 
+// ─── GOSPEL SPHERE GALLERY ───────────────────────────────────────────────────
+function drawGallery(prog){
+  const R=Math.min(W,H);
+  // Phase 1 (0→0.35): fade to black
+  const blackAlpha=clamp(prog/0.35);
+  ctx.save();ctx.globalAlpha=blackAlpha;ctx.fillStyle='#000';ctx.fillRect(0,0,W,H);ctx.restore();
+  const showProg=clamp((prog-.35)/.65);
+  if(showProg<=0)return;
+  const specs=[
+    {color:'#f7c85f',hr:[247,200,95], ha:.55,goldBoost:true},
+    {color:'#0a0a0a',hr:[248,251,255],ha:.28},
+    {color:'#bf1830',hr:[191,24,48],  ha:.55},
+    {color:'#f8fbff',hr:[248,251,255],ha:.30},
+    {color:'#4fd46f',hr:[79,212,111], ha:.55},
+  ];
+  const sr=R*.09;
+  for(let i=0;i<specs.length;i++){
+    const s=specs[i];
+    const a=clamp((showProg-i*.14)/.22);
+    if(a<=0)continue;
+    const cx=W*(i+1)/6, cy=H*.5;
+    ctx.save();ctx.globalAlpha=a;
+    const gr=ctx.createRadialGradient(cx,cy,0,cx,cy,sr*2.8);
+    gr.addColorStop(0,`rgba(${s.hr[0]},${s.hr[1]},${s.hr[2]},${s.ha})`);
+    gr.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.fillStyle=gr;ctx.beginPath();ctx.arc(cx,cy,sr*2.8,0,7);ctx.fill();
+    drawSphere({x:cx,y:cy,r:sr,color:s.color,goldBoost:!!s.goldBoost,speed:.35,alpha:1});
+    ctx.restore();
+  }
+}
+
 // ─── MAIN RENDER LOOP ────────────────────────────────────────────────────────
 function render(){
   requestAnimationFrame(render);
@@ -1806,6 +1838,11 @@ function render(){
   else {
     drawChapter8Sprout(t01(8));
   }
+
+  // Gallery overlay (runs on top of any scene)
+  if(S.gallery) S.galleryProg=Math.min(1,S.galleryProg+dt*.85);
+  else S.galleryProg=Math.max(0,S.galleryProg-dt*1.8);
+  if(S.galleryProg>0) drawGallery(S.galleryProg);
 }
 
 // ─── Labels ──────────────────────────────────────────────────────────────────
@@ -1849,7 +1886,18 @@ function applyChapter(v){
   setLabels();
 }
 function applyBlack(v){S.black=!!v;$('#blackout').classList.toggle('active',S.black)}
-function applyImmersive(v){S.immersive=!!v;$('#presentationScreen').classList.toggle('immersive',S.immersive);$('#toggleFullscreen').classList.toggle('active',S.immersive)}
+function applyImmersive(v){
+  S.immersive=!!v;
+  $('#presentationScreen').classList.toggle('immersive',S.immersive);
+  const btn=$('#toggleFullscreen');if(btn)btn.classList.toggle('active',S.immersive);
+  if(S.mode==='presentation'){
+    if(v&&!document.fullscreenElement&&document.documentElement.requestFullscreen)
+      document.documentElement.requestFullscreen().catch(()=>{});
+    else if(!v&&document.fullscreenElement&&document.exitFullscreen)
+      document.exitFullscreen().catch(()=>{});
+  }
+}
+function applyGallery(v){S.gallery=!!v;const btn=$('#sphereGallery');if(btn)btn.classList.toggle('active',S.gallery)}
 async function enterPresentationFullscreen(){
   applyImmersive(true);
   if(document.documentElement.requestFullscreen && !document.fullscreenElement){
@@ -1874,6 +1922,7 @@ function listen(id){
     applyChapter(d.scene||1);
     applyBlack(d.blackScreen||false);
     applyImmersive(d.immersive||false);
+    applyGallery(d.gallery||false);
     if(d.lastParticle?.at&&!S.particles.find(x=>x.at===d.lastParticle.at))
       addVisitorParticle(d.lastParticle.color);
     connected(true);clear();
@@ -1881,14 +1930,14 @@ function listen(id){
 }
 async function write(patch){
   if(!S.ready||!S.roomId){show('Firebase 연결이 필요합니다.');return}
-  await set(roomRef(S.roomId),{scene:S.chapter,blackScreen:S.black,immersive:S.immersive,updatedAt:Date.now(),...patch}).catch(e=>show('저장 실패: '+e.message));
+  await set(roomRef(S.roomId),{scene:S.chapter,blackScreen:S.black,immersive:S.immersive,gallery:S.gallery,updatedAt:Date.now(),...patch}).catch(e=>show('저장 실패: '+e.message));
 }
 
 async function startPresentation(){
   switchScreen('presentation');
   S.roomId=newRoomId();
   S.T=0; S.Tgt=0; S.chapter=1; S.lastRealTime=performance.now();
-  applyBlack(false);applyImmersive(false);
+  applyBlack(false);applyImmersive(false);applyGallery(false);
   setLabels();
   $('#presentationRoom').textContent=S.roomId;
   const url=remoteUrl(S.roomId);
@@ -1907,7 +1956,7 @@ function startRemote(id=''){
   else show('발표 화면의 QR 코드로 접속하거나 Room ID를 입력하세요.');
 }
 function goHome(){stopListen();switchScreen('home');history.replaceState({},'',location.pathname);clear()}
-function newColor(){S.remoteColor=colors[Math.floor(Math.random()*colors.length)];$('#remoteOrb').style.setProperty('--orb',S.remoteColor)}
+function newColor(){S.remoteColor=colors[Math.floor(Math.random()*colors.length)];const orb=$('#remoteOrb');if(orb)orb.style.setProperty('--orb',S.remoteColor)}
 async function sendGo(){const ev={color:S.remoteColor,at:Date.now()};addVisitorParticle(ev.color);newColor();if(S.ready&&S.roomId)await write({lastParticle:ev})}
 
 // ─── Event listeners ─────────────────────────────────────────────────────────
@@ -1918,7 +1967,15 @@ $('#homeFromRemote').onclick=goHome;
 $('#fullScreenButton').onclick=enterPresentationFullscreen;
 $('#previousChapter').onclick=()=>write({scene:Math.max(1,S.chapter-1)});
 $('#nextChapter').onclick=()=>write({scene:Math.min(TOTAL,S.chapter+1)});
-$('#toggleFullscreen').onclick=()=>write({immersive:!S.immersive});
+$('#toggleFullscreen').onclick=()=>{
+  const next=!S.immersive;
+  write({immersive:next});
+  if(document.documentElement.requestFullscreen){
+    if(next&&!document.fullscreenElement) document.documentElement.requestFullscreen().catch(()=>{});
+    else if(!next&&document.fullscreenElement) document.exitFullscreen().catch(()=>{});
+  }
+};
+$('#sphereGallery').onclick=()=>write({gallery:!S.gallery});
 $('#manualRoomConnect').onclick=()=>startRemote($('#manualRoomInput').value);
 $('#manualRoomInput').onkeydown=e=>{if(e.key==='Enter')startRemote(e.currentTarget.value)};
 document.addEventListener('keydown',e=>{
