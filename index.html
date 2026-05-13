@@ -156,28 +156,10 @@ h1{font-size:clamp(40px,9vw,88px);line-height:.92}
         <span id="connectionText">대기 중</span>
       </div>
     </div>
-    <div class="card orbwrap">
-      <div class="rorb" id="remoteOrb">
-        <button class="go" id="goParticle">GO!</button>
-      </div>
-      <p style="margin:16px 0 0;color:rgba(248,250,252,.6);text-align:center;line-height:1.45">
-        GO를 누르면 현재 색 입자가 발표 화면 스피어에 기록됩니다.
-      </p>
-    </div>
-    <div class="card">
-      <span class="meta">Current Chapter</span>
-      <div style="font-size:74px;font-weight:1000;line-height:.95" id="remoteChapter">1</div>
-      <div style="color:rgba(248,250,252,.6);font-weight:800">/ <span id="remoteTotal">9</span></div>
-    </div>
-    <div class="grid">
-      <button class="rbtn" id="previousChapter">이전 챕터</button>
-      <button class="rbtn" id="nextChapter">다음 챕터</button>
-      <button class="rbtn" id="firstChapter">처음</button>
-      <button class="rbtn" id="blackScreen">검은 화면</button>
-    </div>
-    <div class="grid">
-      <button class="rbtn" id="compactMode">UI 보기</button>
-      <button class="rbtn" id="screenMode">몰입 모드</button>
+    <div style="display:grid;gap:12px">
+      <button class="rbtn" id="previousChapter">◀  이전 슬라이드</button>
+      <button class="rbtn" id="nextChapter">다음 슬라이드  ▶</button>
+      <button class="rbtn" id="toggleFullscreen">전체화면 전환</button>
     </div>
     <div class="card" id="manualRoomCard">
       <span class="meta">Manual Connect</span>
@@ -707,7 +689,7 @@ function drawShatter(prog){
   }
 
   ctx.globalAlpha=clamp(1-t*1.18,0,1);
-  ctx.fillStyle='rgba(247,251,255,.72)';
+  ctx.fillStyle='#f7fbff';
   ctx.fillRect(0,0,W,H);
   ctx.restore();
 }
@@ -1833,9 +1815,7 @@ function setLabels(){
   $('#chapterTitle').textContent=t;
   $('#chapterDesc').textContent=d;
   $('#presentationChapter').textContent=S.chapter;
-  $('#remoteChapter').textContent=S.chapter;
   $('#presentationTotal').textContent=TOTAL;
-  $('#remoteTotal').textContent=TOTAL;
 }
 
 // ─── Visitor particle ─────────────────────────────────────────────────────────
@@ -1868,8 +1848,8 @@ function applyChapter(v){
   if(n<wasChapter) S.T=CK[n];
   setLabels();
 }
-function applyBlack(v){S.black=!!v;$('#blackout').classList.toggle('active',S.black);$('#blackScreen').classList.toggle('active',S.black)}
-function applyImmersive(v){S.immersive=!!v;$('#presentationScreen').classList.toggle('immersive',S.immersive);$('#screenMode').classList.toggle('active',S.immersive);$('#compactMode').classList.toggle('active',!S.immersive)}
+function applyBlack(v){S.black=!!v;$('#blackout').classList.toggle('active',S.black)}
+function applyImmersive(v){S.immersive=!!v;$('#presentationScreen').classList.toggle('immersive',S.immersive);$('#toggleFullscreen').classList.toggle('active',S.immersive)}
 async function enterPresentationFullscreen(){
   applyImmersive(true);
   if(document.documentElement.requestFullscreen && !document.fullscreenElement){
@@ -1938,11 +1918,7 @@ $('#homeFromRemote').onclick=goHome;
 $('#fullScreenButton').onclick=enterPresentationFullscreen;
 $('#previousChapter').onclick=()=>write({scene:Math.max(1,S.chapter-1)});
 $('#nextChapter').onclick=()=>write({scene:Math.min(TOTAL,S.chapter+1)});
-$('#firstChapter').onclick=()=>{S.T=0;S.Tgt=0;write({scene:1,blackScreen:false})};
-$('#blackScreen').onclick=()=>write({blackScreen:!S.black});
-$('#compactMode').onclick=()=>write({immersive:false});
-$('#screenMode').onclick=()=>write({immersive:true});
-$('#goParticle').onclick=sendGo;
+$('#toggleFullscreen').onclick=()=>write({immersive:!S.immersive});
 $('#manualRoomConnect').onclick=()=>startRemote($('#manualRoomInput').value);
 $('#manualRoomInput').onkeydown=e=>{if(e.key==='Enter')startRemote(e.currentTarget.value)};
 document.addEventListener('keydown',e=>{
